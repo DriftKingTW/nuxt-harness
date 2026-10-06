@@ -8,7 +8,7 @@
     {
       "name": "nuxt-harness",
       "source": "./plugin",
-      "description": "Lint each edited file, and a skill for adopting, upgrading and extending @driftkingtw/nuxt-harness"
+      "description": "Lint on edit, an e2e gate before PRs, workflow-mode reminders and the worktree guard, plus a skill for adopting, upgrading and extending @driftkingtw/nuxt-harness"
     }
   ]
 }
