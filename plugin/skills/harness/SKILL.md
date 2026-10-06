@@ -36,7 +36,10 @@ or idea comes up in any app: should this become a shared guardrail? (See "Add a 
    - Vitest (e.g. `test/structure.test.ts`): `expectClean(agentsMap())`, `expectClean(localeKeyParity())`,
      `expectClean(missingLocaleKeys(codes.map(c => \`errors.${c}\`)))`, and
      `expectClean(rawPaletteColours({ ... }))` once the app's components use colour roles from
-     `main.css` (leave it out until then).
+     `main.css` (leave it out until then); `expectClean(rawMotionValues())`,
+     `expectClean(rawRadiusValues())`, `expectClean(transitionNames())` and
+     `expectClean(reducedMotionReset())` once `main.css` defines motion tokens, radius tokens and
+     its `<Transition>` classes (existing literals go in `allowClasses` with a reason, or get fixed).
    - `scripts/check.sh`: `yarn nuxt-harness check-adrs` replaces `scripts/check-adrs.ts` and its test.
    - Claude Code: `claude plugin marketplace add DriftKingTW/nuxt-harness --scope project`, then
      `claude plugin install nuxt-harness@nuxt-harness --scope project`; commit the
