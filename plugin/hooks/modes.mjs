@@ -4,7 +4,7 @@
 // the end of a feature: has Claude remind the owner which modes are on, since they change the pace.
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { runsGhPr } from './command.mjs'
 
 const MODES = {
@@ -13,8 +13,8 @@ const MODES = {
   'worktree': 'worktree: the main checkout stays on main for deploys; every change happens in a linked worktree (`orca worktree create`, then rename the branch to type/short-description). Remove the worktree once its PR is merged.',
 }
 
-function modesOn(projectDir) {
-  let value = process.env.HARNESS_MODES
+function modesOn(projectDir, { env = true } = {}) {
+  let value = env ? process.env.HARNESS_MODES : undefined
   for (const file of ['settings.local.json', 'settings.json']) {
     if (value !== undefined) break
     try {
@@ -28,7 +28,24 @@ function modesOn(projectDir) {
 }
 
 const input = JSON.parse(readFileSync(0, 'utf8') || '{}')
-const on = modesOn(process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd())
+const command = input.tool_input?.command ?? ''
+
+// The PR's repo: `cd <dir> && gh pr create` may open it in another repo than the session's.
+function prRepo() {
+  const cd = /(?:^|&&|;)\s*cd\s+(?:"([^"]+)"|'([^']+)'|(\S+))\s*&&/.exec(command)
+  const dir = resolve(input.cwd || process.cwd(), cd ? (cd[1] ?? cd[2] ?? cd[3]) : '.')
+  try {
+    return execFileSync('git', ['-C', dir, 'rev-parse', '--show-toplevel'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+  }
+  catch {
+    return dir
+  }
+}
+
+const isPr = input.hook_event_name === 'PostToolUse'
+const on = isPr
+  ? modesOn(prRepo(), { env: false })
+  : modesOn(process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd())
 if (!on.length) process.exit(0)
 
 function inMainCheckout(dir) {
@@ -47,7 +64,9 @@ if (input.hook_event_name === 'SessionStart') {
     : ''
   console.log(`<workflow-modes>\nThis repo turns on these workflow modes (HARNESS_MODES in .claude/settings.json):\n${on.map(m => `- ${MODES[m]}`).join('\n')}${here}\n</workflow-modes>`)
 }
-else if (input.hook_event_name === 'PostToolUse' && runsGhPr(input.tool_input?.command ?? '', 'create')) {
+// Only once a PR exists: its URL is in the output (not for --help, --dry-run or a failed create).
+else if (isPr && runsGhPr(command, 'create')
+  && /\/pull\/\d+/.test(JSON.stringify(input.tool_response ?? ''))) {
   console.log(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'PostToolUse',

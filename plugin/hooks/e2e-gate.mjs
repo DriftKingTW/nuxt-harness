@@ -12,7 +12,7 @@ const UI = ['app/', 'e2e/', 'i18n/']
 
 const input = JSON.parse(readFileSync(0, 'utf8') || '{}')
 const command = input.tool_input?.command ?? ''
-if (!runsGhPr(command, 'create')) process.exit(0)
+if (!runsGhPr(command, 'create') || /\s(?:-h|--help)\b/.test(command)) process.exit(0)
 
 // `cd <dir> && gh pr create` opens the PR for <dir>'s repo, not the session's.
 const cd = /(?:^|&&|;)\s*cd\s+(?:"([^"]+)"|'([^']+)'|(\S+))\s*&&/.exec(command)
