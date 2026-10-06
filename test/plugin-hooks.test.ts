@@ -118,11 +118,18 @@ describe('modes', () => {
 
   it('asks for a reminder after a PR is opened, and only then', () => {
     const root = project('fast-dev')
-    const out = JSON.parse(run('modes.mjs', after('cd x && gh pr create --fill'), { CLAUDE_PROJECT_DIR: root }))
+    const out = JSON.parse(run('modes.mjs', after(`cd ${root} && gh pr create --fill`), { CLAUDE_PROJECT_DIR: root }))
     expect(out.hookSpecificOutput.additionalContext).toContain('modes are on: fast-dev')
     expect(run('modes.mjs', after('gh pr merge 3 --squash'), { CLAUDE_PROJECT_DIR: root })).toBe('')
     expect(run('modes.mjs', after('git commit -m "before gh pr create"'), { CLAUDE_PROJECT_DIR: root })).toBe('')
     expect(run('modes.mjs', after('gh pr create --help', 'Create a pull request on GitHub.'), { CLAUDE_PROJECT_DIR: root })).toBe('')
+  })
+
+  it('reminds about the modes of the repo the PR is in', () => {
+    const withModes = project('fast-dev')
+    const without = project()
+    execFileSync('git', ['init', '-q', without])
+    expect(run('modes.mjs', { ...after(`cd ${without} && gh pr create --fill`), cwd: withModes }, { CLAUDE_PROJECT_DIR: withModes, HARNESS_MODES: 'fast-dev' })).toBe('')
   })
 
   it('prefers the session environment over the settings file', () => {
