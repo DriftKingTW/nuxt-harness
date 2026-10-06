@@ -11,7 +11,7 @@ A personal toolkit, shared in case it is useful. No support is offered.
 | Import | What |
 |---|---|
 | `@driftkingtw/nuxt-harness/eslint` | `harness({ bareStrings })`: flat config items. `vue/no-bare-strings-in-template` in `app/**/*.vue` with a shared allowlist, and two rules for `e2e/**/*.spec.ts`: `nuxt-harness/goto-hydrated` (no `page.goto`) and `nuxt-harness/test-from-fixtures` (no `test`/`expect` from `@playwright/test`) |
-| `@driftkingtw/nuxt-harness/playwright` | `test` (fails on console errors, warnings and page errors; option `consoleIgnore`), `expect`, `gotoHydrated(page, path)`, `e2ePort()` |
+| `@driftkingtw/nuxt-harness/playwright` | `test` (fails on console errors, warnings and page errors; option `consoleIgnore`: one RegExp or a list, but one RegExp in `test.use`, where Playwright reads a two-item array as `[value, options]`), `expect`, `gotoHydrated(page, path)`, `e2ePort()` |
 | `@driftkingtw/nuxt-harness/vitest` | `localeKeyParity()`, `missingLocaleKeys(keys)`, `rawPaletteColours({ files, allowFiles, allowClasses })`, `agentsMap({ maxLines })` (AGENTS.md stays a short map with a commit scope table), and `expectClean(findings)` |
 | `@driftkingtw/nuxt-harness/nuxt` | Nuxt module: sets `<html data-hydrated="true">` once Nuxt has hydrated, which `gotoHydrated` waits for |
 | `nuxt-harness check-adrs` | Validates `docs/decisions` (MADR-lite ADRs indexed in `README.md`) and that every dependency in `package.json` is named in one |
@@ -29,7 +29,7 @@ approvedGitRepositories:
 ```
 
 ```sh
-yarn add -D @driftkingtw/nuxt-harness@github:DriftKingTW/nuxt-harness#v0.1.0
+yarn add -D @driftkingtw/nuxt-harness@github:DriftKingTW/nuxt-harness#v0.1.1
 ```
 
 ```ts
