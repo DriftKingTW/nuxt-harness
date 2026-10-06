@@ -1,0 +1,9 @@
+{
+  "name": "nuxt-harness",
+  "description": "Lint each edited file, and a skill for adopting, upgrading and extending @driftkingtw/nuxt-harness",
+  "author": {
+    "name": "DriftKingTW"
+  },
+  "repository": "https://github.com/DriftKingTW/nuxt-harness",
+  "license": "MIT"
+}

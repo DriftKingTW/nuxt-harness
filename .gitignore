@@ -1,0 +1,10 @@
+dist
+node_modules
+*.tsbuildinfo
+*.tgz
+.DS_Store
+
+# Yarn 4 (keep the pinned release, ignore caches)
+.yarn/*
+!.yarn/releases
+.pnp.*

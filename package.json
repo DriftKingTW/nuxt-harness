@@ -1,0 +1,69 @@
+{
+  "name": "@driftkingtw/nuxt-harness",
+  "version": "0.1.0",
+  "description": "Shared guardrails for Nuxt apps built with coding agents: lint rules, e2e fixtures, structural checks and an ADR checker.",
+  "license": "MIT",
+  "author": "DriftKingTW",
+  "repository": "github:DriftKingTW/nuxt-harness",
+  "type": "module",
+  "exports": {
+    "./eslint": {
+      "types": "./dist/eslint.d.ts",
+      "default": "./dist/eslint.js"
+    },
+    "./playwright": {
+      "types": "./dist/playwright.d.ts",
+      "default": "./dist/playwright.js"
+    },
+    "./vitest": {
+      "types": "./dist/vitest.d.ts",
+      "default": "./dist/vitest.js"
+    },
+    "./nuxt": {
+      "types": "./dist/nuxt.d.ts",
+      "default": "./dist/nuxt.js"
+    }
+  },
+  "bin": "./dist/cli.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "yarn build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "bash scripts/check.sh"
+  },
+  "packageManager": "yarn@4.18.1",
+  "dependencies": {
+    "@nuxt/kit": "^4.5.2"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.63.0",
+    "eslint": "^10.0.0",
+    "vitest": "^4.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@playwright/test": {
+      "optional": true
+    },
+    "eslint": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@nuxt/eslint-config": "^1.17.0",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22",
+    "@vue/compiler-sfc": "^3.5.43",
+    "eslint": "^10.11.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.0"
+  }
+}

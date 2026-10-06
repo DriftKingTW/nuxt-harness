@@ -1,0 +1,14 @@
+{
+  "name": "nuxt-harness",
+  "description": "The Claude Code side of @driftkingtw/nuxt-harness",
+  "owner": {
+    "name": "DriftKingTW"
+  },
+  "plugins": [
+    {
+      "name": "nuxt-harness",
+      "source": "./plugin",
+      "description": "Lint each edited file, and a skill for adopting, upgrading and extending @driftkingtw/nuxt-harness"
+    }
+  ]
+}
