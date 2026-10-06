@@ -12,7 +12,7 @@ A personal toolkit, shared in case it is useful. No support is offered.
 |---|---|
 | `@driftkingtw/nuxt-harness/eslint` | `harness({ bareStrings })`: flat config items. `vue/no-bare-strings-in-template` in `app/**/*.vue` with a shared allowlist, and two rules for `e2e/**/*.spec.ts`: `nuxt-harness/goto-hydrated` (no `page.goto`) and `nuxt-harness/test-from-fixtures` (no `test`/`expect` from `@playwright/test`) |
 | `@driftkingtw/nuxt-harness/playwright` | `test` (fails on console errors, warnings and page errors; option `consoleIgnore`: one RegExp or a list, but one RegExp in `test.use`, where Playwright reads a two-item array as `[value, options]`), `expect`, `gotoHydrated(page, path)`, `e2ePort()` |
-| `@driftkingtw/nuxt-harness/vitest` | `localeKeyParity()`, `missingLocaleKeys(keys)`, `rawPaletteColours({ files, allowFiles, allowClasses })`, `agentsMap({ maxLines })` (AGENTS.md stays a short map with a commit scope table), and `expectClean(findings)` |
+| `@driftkingtw/nuxt-harness/vitest` | `localeKeyParity()`, `missingLocaleKeys(keys)`, `rawPaletteColours({ files, allowFiles, allowClasses })`, UI motion and shape: `rawMotionValues({ files, allowClasses })` (durations, delays and curves from tokens), `rawRadiusValues({ files, allowClasses })` (corners from radius tokens; `calc(var(--radius-…)…)` passes), `transitionNames({ files, css })` (every `<Transition name>` has its classes in `main.css`), `reducedMotionReset({ css })`; `agentsMap({ maxLines })` (AGENTS.md stays a short map with a commit scope table), and `expectClean(findings)` |
 | `@driftkingtw/nuxt-harness/nuxt` | Nuxt module: sets `<html data-hydrated="true">` once Nuxt has hydrated, which `gotoHydrated` waits for |
 | `nuxt-harness check-adrs` | Validates `docs/decisions` (MADR-lite ADRs indexed in `README.md`) and that every dependency in `package.json` is named in one |
 | Claude Code plugin `nuxt-harness` | Hooks: ESLint `--fix` on each edited file; no `gh pr create` with UI changes (`app/`, `e2e/`, `i18n/`) newer than the last passing `yarn e2e`; edits to tracked files in the main checkout in worktree mode; workflow modes (below). The `harness` skill: adopt, upgrade, add a guardrail, with an `AGENTS.md` template |
@@ -29,7 +29,7 @@ approvedGitRepositories:
 ```
 
 ```sh
-yarn add -D @driftkingtw/nuxt-harness@github:DriftKingTW/nuxt-harness#v0.1.1
+yarn add -D @driftkingtw/nuxt-harness@github:DriftKingTW/nuxt-harness#v0.2.0
 ```
 
 ```ts
@@ -66,10 +66,14 @@ export default defineConfig<HarnessTestOptions>({
 
 ```ts
 // test/structure.test.ts
-import { agentsMap, expectClean, localeKeyParity, rawPaletteColours } from '@driftkingtw/nuxt-harness/vitest'
+import { agentsMap, expectClean, localeKeyParity, rawMotionValues, rawPaletteColours, rawRadiusValues, reducedMotionReset, transitionNames } from '@driftkingtw/nuxt-harness/vitest'
 
 it('locale files have the same keys', () => expectClean(localeKeyParity()))
 it('app/ uses colour roles', () => expectClean(rawPaletteColours({ allowFiles: ['app/utils/chips.ts'] })))
+it('motion comes from tokens', () => expectClean(rawMotionValues()))
+it('corners come from radius tokens', () => expectClean(rawRadiusValues()))
+it('every <Transition> name is defined', () => expectClean(transitionNames()))
+it('reduced motion turns motion off', () => expectClean(reducedMotionReset()))
 it('AGENTS.md is a short map with commit scopes', () => expectClean(agentsMap()))
 ```
 
@@ -109,7 +113,7 @@ Guardrails one app uses stay in that app until a second one needs them. So far:
 
 - e2e helpers: a generated PNG for upload tests, dropping files on the page, slowing the CPU down
 - no user-facing literals in `<script>` (`label`, `title`, …); every `t('key')` the app uses exists
-- radius tokens, `<Transition>` names defined in `main.css`, native controls styled in `main.css`
+- native controls styled in `main.css`
 - typecheck coverage of top-level folders, no machine-specific paths in source files
 
 ## Develop
