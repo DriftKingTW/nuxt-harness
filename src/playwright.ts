@@ -9,8 +9,11 @@ export interface HarnessTestOptions {
    * Console lines a test may cause without failing, matched against "console.error: <text>",
    * "console.warning: <text>" or "page error: <message>". Only for lines a test provokes on purpose,
    * e.g. /^console\.error: Failed to load resource/ when it checks how the app handles an HTTP error.
+   * In `test.use`, Playwright reads a two-item array as [value, options] and silently drops the
+   * second pattern: there, pass one RegExp and join alternatives with `|`. A test's value replaces
+   * the config's, so repeat the config's patterns it still needs.
    */
-  consoleIgnore: RegExp[]
+  consoleIgnore: RegExp | RegExp[]
 }
 
 /**
@@ -22,8 +25,9 @@ export const test = base.extend<HarnessTestOptions & { consoleProblems: string[]
   consoleIgnore: [[], { option: true }],
   consoleProblems: [async ({ context, consoleIgnore }, use) => {
     const problems: string[] = []
+    const patterns = [consoleIgnore].flat()
     const report = (line: string) => {
-      if (!consoleIgnore.some(pattern => pattern.test(line))) problems.push(line)
+      if (!patterns.some(pattern => pattern.test(line))) problems.push(line)
     }
     context.on('console', (message) => {
       if (message.type() === 'error' || message.type() === 'warning') report(`console.${message.type()}: ${message.text()}`)
