@@ -47,7 +47,9 @@ if (input.hook_event_name === 'SessionStart') {
     : ''
   console.log(`<workflow-modes>\nThis repo turns on these workflow modes (HARNESS_MODES in .claude/settings.json):\n${on.map(m => `- ${MODES[m]}`).join('\n')}${here}\n</workflow-modes>`)
 }
-else if (input.hook_event_name === 'PostToolUse' && runsGhPr(input.tool_input?.command ?? '', 'create')) {
+// Only once a PR exists: its URL is in the output (not for --help, --dry-run or a failed create).
+else if (input.hook_event_name === 'PostToolUse' && runsGhPr(input.tool_input?.command ?? '', 'create')
+  && /\/pull\/\d+/.test(JSON.stringify(input.tool_response ?? ''))) {
   console.log(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'PostToolUse',
