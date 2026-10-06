@@ -35,7 +35,8 @@ plugin/         the Claude Code plugin: hooks/ (lint on edit, e2e gate, workflow
   `src/` uses `.js` import specifiers and builds with `tsc`.
 - This repo is public: no personal data, real exports, or paths from anyone's machine.
 - Changing the API: update the README, the skill (`plugin/skills/harness/SKILL.md`), and bump
-  `version`. Pushing to main and pushing tags need the owner's OK.
+  `version`. Pushing to main and pushing tags need the owner's OK; PRs with green CI may be
+  merged without asking (`fast-dev` in `.claude/settings.json`).
 
 ## Commits
 

@@ -107,7 +107,8 @@ describe('modes', () => {
 
   it('says nothing when no mode is on', () => {
     expect(run('modes.mjs', session, { CLAUDE_PROJECT_DIR: project() })).toBe('')
-    expect(run('modes.mjs', after('gh pr create'), { CLAUDE_PROJECT_DIR: project('') })).toBe('')
+    const none = project('')
+    expect(run('modes.mjs', { ...after('gh pr create'), cwd: none }, { CLAUDE_PROJECT_DIR: none })).toBe('')
   })
 
   it('explains the modes at session start', () => {
