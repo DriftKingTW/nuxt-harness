@@ -4,6 +4,7 @@
 import { existsSync, globSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect } from 'vitest'
+import { parse } from 'yaml'
 
 /** What a check found, and how to fix it. */
 export interface Findings {
@@ -193,5 +194,68 @@ export function agentsMap({ file = 'AGENTS.md', maxLines = 100 } = {}): Findings
       ...(commitScopes(text).length ? [] : [`${file}: no "## Commits" section with a scope table`]),
     ],
     fix,
+  }
+}
+
+interface Job {
+  'if'?: string
+  'needs'?: string | string[]
+  'uses'?: string
+  'timeout-minutes'?: number | string
+  'concurrency'?: unknown
+  'steps'?: { if?: string, run?: string }[]
+}
+
+const E2E_STEP = /\b(?:yarn|npm run|pnpm)\s+e2e\b|\bplaywright\s+test\b/
+const E2E_OPT_IN = /ci:e2e|inputs\.e2e|CI_E2E/
+
+/**
+ * GitHub Actions minutes go to work that tells something new. In `dir`, a workflow that runs on
+ * pull requests: does not run again on push to main, starts when a draft is marked ready and skips
+ * drafts, and cancels superseded runs. Every job has a timeout. e2e runs locally (`nuxt-harness
+ * e2e`), so an e2e step in CI runs only when asked for (label ci:e2e or a dispatch input).
+ */
+export function ciBudget({ dir = '.github/workflows' } = {}): Findings {
+  const files = globSync(`${dir}/*.{yml,yaml}`).sort()
+  if (files.length === 0) throw new Error(`No workflows (*.yml) in ${dir}.`)
+  const offenders: string[] = []
+  for (const file of files) {
+    const workflow = parse(readFileSync(file, 'utf8')) ?? {}
+    const on = workflow.on ?? {}
+    const triggers: Record<string, { branches?: string[], types?: string[] } | null> = typeof on === 'string'
+      ? { [on]: null }
+      : Array.isArray(on) ? Object.fromEntries(on.map((t: string) => [t, null])) : on
+    const jobs: Record<string, Job> = workflow.jobs ?? {}
+    const skipsDrafts = (name: string, seen = new Set<string>()): boolean => {
+      if (seen.has(name)) return false
+      seen.add(name)
+      const job = jobs[name]
+      const needs = job?.needs === undefined ? [] : [job.needs].flat()
+      return /pull_request\.draft/.test(String(job?.if ?? '')) || needs.some(n => skipsDrafts(n, seen))
+    }
+
+    if ('pull_request' in triggers) {
+      const push = triggers.push
+      if ('push' in triggers && (!push?.branches || push.branches.some(b => b === 'main' || b === 'master')))
+        offenders.push(`${file}: runs on push to main as well as on pull requests (the merged PR already passed)`)
+      if (!triggers.pull_request?.types?.includes('ready_for_review'))
+        offenders.push(`${file}: pull_request.types lacks ready_for_review (a draft marked ready would not run)`)
+      for (const name of Object.keys(jobs))
+        if (!skipsDrafts(name)) offenders.push(`${file}: job ${name} runs on draft pull requests`)
+      const cancels = (c: unknown) => typeof c === 'object' && c !== null && (c as Record<string, unknown>)['cancel-in-progress'] === true
+      if (!cancels(workflow.concurrency) && !Object.values(jobs).every(j => cancels(j.concurrency)))
+        offenders.push(`${file}: no concurrency with cancel-in-progress: true (superseded runs keep going)`)
+    }
+    for (const [name, job] of Object.entries(jobs)) {
+      if (!job.uses && job['timeout-minutes'] === undefined) offenders.push(`${file}: job ${name} has no timeout-minutes`)
+      for (const step of job.steps ?? []) {
+        if (step.run && E2E_STEP.test(step.run) && !E2E_OPT_IN.test(`${step.if ?? ''} ${job.if ?? ''}`))
+          offenders.push(`${file}: job ${name} runs e2e on every run`)
+      }
+    }
+  }
+  return {
+    offenders,
+    fix: 'Spend Actions minutes only on new information: trigger on `pull_request: { types: [opened, synchronize, reopened, ready_for_review] }` without `push` to main; give each job `if: ${{ !github.event.pull_request.draft }}` (or `needs` a job that has it); set `concurrency: { group: ci-${{ github.ref }}, cancel-in-progress: true }`; give every job `timeout-minutes`. e2e runs on the developer\'s machine (`yarn nuxt-harness e2e`) and CI checks it with `yarn nuxt-harness require-local-e2e --sha ${{ github.event.pull_request.head.sha }}`; an e2e step in CI needs an `if` on the ci:e2e label or an `inputs.e2e` dispatch input, as in the CI example in the nuxt-harness README.',
   }
 }

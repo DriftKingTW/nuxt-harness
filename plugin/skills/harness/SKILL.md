@@ -6,8 +6,8 @@ description: Adopt, upgrade or extend @driftkingtw/nuxt-harness in a Nuxt app (s
 # nuxt-harness
 
 `@driftkingtw/nuxt-harness` (repo `DriftKingTW/nuxt-harness`) holds the guardrails that two or more
-of the owner's Nuxt apps use. This plugin adds hooks (lint on edit; no `gh pr create` with UI
-changes newer than the last passing `yarn e2e`; workflow-mode reminders) and this guide. The plugin
+of the owner's Nuxt apps use. This plugin adds hooks (lint on edit; PRs open as drafts; no `gh pr ready`
+without a passing local e2e run on the PR head; workflow-mode reminders) and this guide. The plugin
 follows the repo's main branch, while an app pins a release tag: for the API, read the installed
 version's `node_modules/@driftkingtw/nuxt-harness/README.md`, not memory. Also ask, when a mistake
 or idea comes up in any app: should this become a shared guardrail? (See "Add a guardrail".)
@@ -41,6 +41,10 @@ or idea comes up in any app: should this become a shared guardrail? (See "Add a 
      `expectClean(rawRadiusValues())`, `expectClean(transitionNames())` and
      `expectClean(reducedMotionReset())` once `main.css` defines motion tokens, radius tokens and
      its `<Transition>` classes (existing literals go in `allowClasses` with a reason, or get fixed).
+     `expectClean(ciBudget())` for `.github/workflows`.
+   - `.github/workflows/ci.yml`: follow the README's "CI budget" example: drafts skipped, no run on
+     push to main, `nuxt-harness require-local-e2e` instead of `yarn e2e` unless asked for. Record
+     the change in an ADR.
    - `scripts/check.sh`: `yarn nuxt-harness check-adrs` replaces `scripts/check-adrs.ts` and its test.
    - Claude Code: `claude plugin marketplace add DriftKingTW/nuxt-harness --scope project`, then
      `claude plugin install nuxt-harness@nuxt-harness --scope project`; commit the
@@ -49,13 +53,29 @@ or idea comes up in any app: should this become a shared guardrail? (See "Add a 
    `.claude/settings.json` (tracked, so every worktree has it), e.g. `"HARNESS_MODES": "preview"`:
    - `preview`: UI changes go on a preview with a copy of the real data, and wait for their OK,
      before the PR. Safer, slower.
-   - `fast-dev`: PRs whose CI is green are merged and deployed without asking. Faster, riskier.
+   - `fast-dev`: the agent marks its draft PR ready once local checks and e2e pass, and merges and
+     deploys on green CI without asking. Faster, riskier. Without it, PRs stay drafts for the owner.
    - `worktree`: the main checkout stays on main for deploys; every change happens in a linked
      worktree (below). Edits, commits and branch switches in the main checkout are blocked.
    The plugin reminds them after every `gh pr create` which modes are on, so they can turn one off.
 5. Run `yarn check` and `yarn e2e`. The shared `test` fails on console errors and warnings, so
    adopting it may surface real ones: fix them. `consoleIgnore` is only for lines a test provokes on
    purpose (say why in a comment).
+
+## Finish a pull request
+
+PRs open as drafts (`gh pr create --draft`); CI skips drafts. When the work is done:
+
+1. Commit everything and push.
+2. `yarn check`, then `yarn nuxt-harness e2e`: the whole suite on the pushed HEAD, which sets the
+   commit status `e2e (local)`. It refuses uncommitted changes and unpushed commits, and waits
+   while another worktree of the repo runs e2e. Never set the status any other way.
+3. fast-dev: `gh pr ready`, wait for CI, merge. Otherwise: report, and leave the PR as a draft for
+   the owner.
+
+Pushing again after `gh pr ready` reruns CI, which fails at `require-local-e2e` until step 2 has run
+for the new head (then `gh run rerun <id> --failed`). To keep changing things, `gh pr ready --undo`
+first. Docs-only PRs need no e2e run.
 
 ## Work in a worktree (worktree mode)
 
@@ -75,6 +95,9 @@ If the main checkout was left on another branch, `git switch main` there is allo
 
 Read the changes between the app's tag and the new one (`gh api repos/DriftKingTW/nuxt-harness/compare/<old>...<new>`
 or the README), change the tag in `package.json`, `yarn install`, then `yarn check` and `yarn e2e`.
+
+To 0.4.0: add `ciBudget()` to the structural tests and change the CI workflow as in "Adopt" step 3
+(with an ADR); the app's other workflows need `timeout-minutes` on every job.
 
 ## Add a guardrail
 

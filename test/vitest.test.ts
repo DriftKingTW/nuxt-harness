@@ -1,8 +1,8 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { agentsMap, commitScopes, localeKeyParity, missingLocaleKeys, rawMotionValues, rawPaletteColours, rawRadiusValues, reducedMotionReset, transitionNames } from '../src/vitest.js'
+import { agentsMap, ciBudget, commitScopes, localeKeyParity, missingLocaleKeys, rawMotionValues, rawPaletteColours, rawRadiusValues, reducedMotionReset, transitionNames } from '../src/vitest.js'
 
 function project(files: Record<string, string>) {
   const root = mkdtempSync(join(tmpdir(), 'nuxt-harness-'))
@@ -143,5 +143,78 @@ describe('reducedMotionReset', () => {
     const half = project({ 'main.css': '@media (prefers-reduced-motion: reduce) {\n  * { transition-duration: 1ms !important; }\n}\n' })
     expect(reducedMotionReset({ css: `${none}/main.css` }).offenders).toHaveLength(1)
     expect(reducedMotionReset({ css: `${half}/main.css` }).offenders).toHaveLength(1)
+  })
+})
+
+describe('ciBudget', () => {
+  const lean = `
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+concurrency:
+  group: ci-\${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  scan:
+    if: \${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: yarn nuxt-harness require-local-e2e --sha x
+  check:
+    needs: scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - run: yarn check
+      - if: contains(github.event.pull_request.labels.*.name, 'ci:e2e')
+        run: yarn e2e
+`
+
+  it('passes a workflow that skips drafts, repeats and unasked e2e', () => {
+    const dir = join(project({ 'wf/ci.yml': lean }), 'wf')
+    expect(ciBudget({ dir }).offenders).toEqual([])
+  })
+
+  it('lists each way a pull request workflow spends minutes', () => {
+    const dir = join(project({ 'wf/ci.yml': `
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: yarn e2e
+` }), 'wf')
+    const file = join(dir, 'ci.yml')
+    expect(ciBudget({ dir }).offenders).toEqual([
+      `${file}: runs on push to main as well as on pull requests (the merged PR already passed)`,
+      `${file}: pull_request.types lacks ready_for_review (a draft marked ready would not run)`,
+      `${file}: job check runs on draft pull requests`,
+      `${file}: no concurrency with cancel-in-progress: true (superseded runs keep going)`,
+      `${file}: job check has no timeout-minutes`,
+      `${file}: job check runs e2e on every run`,
+    ])
+  })
+
+  it('leaves other workflows to the timeout rule, and push to other branches alone', () => {
+    const dir = join(project({
+      'wf/backup.yml': 'on:\n  schedule:\n    - cron: "0 3 * * *"\njobs:\n  backup:\n    runs-on: ubuntu-latest\n    timeout-minutes: 20\n    steps:\n      - run: echo\n  ping:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo\n',
+      'wf/ci.yml': lean.replace('  workflow_dispatch:', '  push:\n    branches: [release]'),
+    }), 'wf')
+    expect(ciBudget({ dir }).offenders).toEqual([`${join(dir, 'backup.yml')}: job ping has no timeout-minutes`])
+  })
+
+  it('refuses a folder without workflows rather than passing', () => {
+    expect(() => ciBudget({ dir: join(project({ 'wf/.keep': '' }), 'wf') })).toThrow('No workflows')
+  })
+
+  it('passes the CI example in the README', () => {
+    const readme = readFileSync(join(import.meta.dirname, '..', 'README.md'), 'utf8')
+    const example = /## CI budget[\s\S]*?```yaml\n([\s\S]*?)```/.exec(readme)![1]!
+    expect(ciBudget({ dir: join(project({ 'wf/ci.yml': example }), 'wf') }).offenders).toEqual([])
   })
 })
