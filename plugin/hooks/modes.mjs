@@ -9,7 +9,7 @@ import { runsGhPr } from './command.mjs'
 
 const MODES = {
   'preview': 'preview: before opening a PR that changes what the owner sees, run the branch on a preview with a copy of the real data, give them the URL, and wait for their OK.',
-  'fast-dev': 'fast-dev: merge PRs whose CI is green, and deploy, without asking first.',
+  'fast-dev': 'fast-dev: open PRs as drafts; once `yarn check` and `yarn nuxt-harness e2e` pass on the pushed branch, mark the PR ready (`gh pr ready`), then merge it when CI is green, and deploy, without asking first.',
   'worktree': 'worktree: the main checkout stays on main for deploys; every change happens in a linked worktree (`orca worktree create`, then rename the branch to type/short-description). Remove the worktree once its PR is merged.',
 }
 

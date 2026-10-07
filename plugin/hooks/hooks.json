@@ -19,6 +19,11 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/hooks/e2e-gate.mjs",
             "timeout": 20
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/hooks/draft-pr.mjs",
+            "timeout": 10
           }
         ]
       },
