@@ -49,10 +49,35 @@ const testFromFixtures: Rule.RuleModule = {
   }),
 }
 
+const DIALOGS = new Set(['alert', 'confirm', 'prompt'])
+const BROWSER_GLOBALS = new Set(['window', 'globalThis', 'self'])
+
+const noBrowserDialogs: Rule.RuleModule = {
+  meta: {
+    type: 'problem',
+    docs: { description: 'No alert(), confirm() or prompt()' },
+    messages: {
+      dialog: 'No {{name}}(): browser dialogs block the page, cannot be styled or translated with the app, and look different on every device. Confirm a destructive action in the page (a two-step button: the first click arms it), show a message in the page (role="alert"), and ask for input with a form or the app\'s dialog component.',
+    },
+    schema: [],
+  },
+  create: context => ({
+    CallExpression(node) {
+      const callee = node.callee
+      let name: string | undefined
+      if (callee.type === 'Identifier') name = callee.name
+      else if (callee.type === 'MemberExpression' && !callee.computed && callee.object.type === 'Identifier'
+        && BROWSER_GLOBALS.has(callee.object.name) && callee.property.type === 'Identifier') name = callee.property.name
+      if (name && DIALOGS.has(name)) context.report({ node, messageId: 'dialog', data: { name } })
+    },
+  }),
+}
+
 export const plugin: ESLint.Plugin = {
   meta: { name: '@driftkingtw/nuxt-harness' },
   rules: {
     'goto-hydrated': gotoHydrated,
+    'no-browser-dialogs': noBrowserDialogs,
     'test-from-fixtures': testFromFixtures,
   },
 }
@@ -75,6 +100,14 @@ export function harness({ bareStrings = [] }: HarnessOptions = {}): Linter.Confi
       rules: {
         // All user-facing copy goes through i18n (t / $t), including aria-label, title, placeholder, alt.
         'vue/no-bare-strings-in-template': ['error', { allowlist: [...BARE_STRING_ALLOWLIST, ...bareStrings] }],
+      },
+    },
+    {
+      name: 'nuxt-harness/app',
+      files: ['app/**/*.{ts,vue}'],
+      plugins: { 'nuxt-harness': plugin },
+      rules: {
+        'nuxt-harness/no-browser-dialogs': 'error',
       },
     },
     {

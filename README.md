@@ -10,7 +10,7 @@ A personal toolkit, shared in case it is useful. No support is offered.
 
 | Import | What |
 |---|---|
-| `@driftkingtw/nuxt-harness/eslint` | `harness({ bareStrings })`: flat config items. `vue/no-bare-strings-in-template` in `app/**/*.vue` with a shared allowlist, and two rules for `e2e/**/*.spec.ts`: `nuxt-harness/goto-hydrated` (no `page.goto`) and `nuxt-harness/test-from-fixtures` (no `test`/`expect` from `@playwright/test`) |
+| `@driftkingtw/nuxt-harness/eslint` | `harness({ bareStrings })`: flat config items. `vue/no-bare-strings-in-template` in `app/**/*.vue` with a shared allowlist; `nuxt-harness/no-browser-dialogs` in `app/**/*.{ts,vue}` (no `alert`/`confirm`/`prompt`); and two rules for `e2e/**/*.spec.ts`: `nuxt-harness/goto-hydrated` (no `page.goto`) and `nuxt-harness/test-from-fixtures` (no `test`/`expect` from `@playwright/test`) |
 | `@driftkingtw/nuxt-harness/playwright` | `test` (fails on console errors, warnings and page errors; option `consoleIgnore`: one RegExp or a list, but one RegExp in `test.use`, where Playwright reads a two-item array as `[value, options]`), `expect`, `gotoHydrated(page, path)`, `e2ePort()` |
 | `@driftkingtw/nuxt-harness/vitest` | `localeKeyParity()`, `missingLocaleKeys(keys)`, `rawPaletteColours({ files, allowFiles, allowClasses })`, UI motion and shape: `rawMotionValues({ files, allowClasses })` (durations, delays and curves from tokens), `rawRadiusValues({ files, allowClasses })` (corners from radius tokens; `calc(var(--radius-…)…)` passes), `transitionNames({ files, css })` (every `<Transition name>` has its classes in `main.css`), `reducedMotionReset({ css })`; `agentsMap({ maxLines })` (AGENTS.md stays a short map with a commit scope table), and `expectClean(findings)` |
 | `@driftkingtw/nuxt-harness/nuxt` | Nuxt module: sets `<html data-hydrated="true">` once Nuxt has hydrated, which `gotoHydrated` waits for |
@@ -29,7 +29,7 @@ approvedGitRepositories:
 ```
 
 ```sh
-yarn add -D @driftkingtw/nuxt-harness@github:DriftKingTW/nuxt-harness#v0.2.0
+yarn add -D @driftkingtw/nuxt-harness@github:DriftKingTW/nuxt-harness#v0.3.0
 ```
 
 ```ts
