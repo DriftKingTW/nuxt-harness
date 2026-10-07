@@ -1,6 +1,6 @@
 {
   "name": "@driftkingtw/nuxt-harness",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Shared guardrails for Nuxt apps built with coding agents: lint rules, e2e fixtures, structural checks and an ADR checker.",
   "license": "MIT",
   "author": "DriftKingTW",
@@ -39,7 +39,8 @@
   },
   "packageManager": "yarn@4.18.1",
   "dependencies": {
-    "@nuxt/kit": "^4.5.2"
+    "@nuxt/kit": "^4.5.2",
+    "yaml": "^2.9.1"
   },
   "peerDependencies": {
     "@playwright/test": "^1.63.0",
