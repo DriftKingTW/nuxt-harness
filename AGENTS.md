@@ -15,10 +15,10 @@ Yarn 4, pinned in `.yarn/releases`. TypeScript 5.9 (the apps pin it too).
 ## Where things are
 
 ```
-src/            one file per package entry (eslint, playwright, vitest, nuxt) + adrs.ts, cli.ts
+src/            one file per package entry (eslint, playwright, vitest, nuxt) + adrs.ts, local-e2e.ts, cli.ts
 test/           Vitest tests for src/
-plugin/         the Claude Code plugin: hooks/ (lint on edit, e2e gate, workflow modes, worktree
-                guard) and
+plugin/         the Claude Code plugin: hooks/ (lint on edit, draft PRs, e2e gate, workflow modes,
+                worktree guard) and
                 skills/harness/ (SKILL.md, AGENTS.template.md)
 .claude-plugin/ the marketplace that lists plugin/
 ```
@@ -49,4 +49,5 @@ Format: `type(scope): subject`. Allowed scopes; omit the scope when a change spa
 | `vitest` | `src/vitest.ts` structural checks |
 | `nuxt` | `src/nuxt.ts` module |
 | `adrs` | `src/adrs.ts` and the CLI |
+| `e2e` | `src/local-e2e.ts` (local e2e and its commit status) |
 | `plugin` | `plugin/` hooks and skill, `.claude-plugin/` |
