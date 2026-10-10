@@ -11,9 +11,11 @@ tester.run('goto-hydrated', plugin.rules!['goto-hydrated']!, {
   valid: [
     'await gotoHydrated(page, "/items")',
     'await other.goto("/items")',
+    'await other.reload()',
   ],
   invalid: [
     { code: 'await page.goto("/items")', errors: [{ messageId: 'goto' }] },
+    { code: 'await page.reload()', errors: [{ messageId: 'reload' }] },
   ],
 })
 

@@ -28,7 +28,7 @@ or idea comes up in any app: should this become a shared guardrail? (See "Add a 
      `dataset.hydrated` line from `app/app.vue`.
    - `eslint.config.mjs`: spread `...harness({ bareStrings: [/* app-only symbols */] })` (from
      `@driftkingtw/nuxt-harness/eslint`) into `withNuxt(...)`; remove the app's
-     `vue/no-bare-strings-in-template` and `page.goto` rules, and any own ban on `alert`/`confirm`/`prompt`
+     `vue/no-bare-strings-in-template` and `page.goto` / `page.reload` rules, and any own ban on `alert`/`confirm`/`prompt`
      (`nuxt-harness/no-browser-dialogs` covers `app/`).
    - `e2e/fixtures.ts`: `export { expect, gotoHydrated, test } from '@driftkingtw/nuxt-harness/playwright'`,
      next to the app's own helpers. Specs import `test` and `expect` from `./fixtures`.
