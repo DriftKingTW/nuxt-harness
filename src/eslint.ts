@@ -15,15 +15,20 @@ export const BARE_STRING_ALLOWLIST = [
 const gotoHydrated: Rule.RuleModule = {
   meta: {
     type: 'problem',
-    docs: { description: 'Navigate with gotoHydrated() instead of page.goto()' },
+    docs: { description: 'Navigate with gotoHydrated() instead of page.goto() or page.reload()' },
     messages: {
       goto: 'Use gotoHydrated(page, path) from e2e/fixtures.ts. Clicks before Vue hydration are silently lost, which makes tests flaky.',
+      reload: 'Load the page again with gotoHydrated(page, path) from e2e/fixtures.ts. Right after page.reload() Vue has not hydrated yet, so the next click can be silently lost.',
     },
     schema: [],
   },
   create: context => ({
     'CallExpression[callee.object.name="page"][callee.property.name="goto"]'(node: Rule.Node) {
       context.report({ node, messageId: 'goto' })
+    },
+    // A reload hydrates again, the same race as a fresh page.goto().
+    'CallExpression[callee.object.name="page"][callee.property.name="reload"]'(node: Rule.Node) {
+      context.report({ node, messageId: 'reload' })
     },
   }),
 }
