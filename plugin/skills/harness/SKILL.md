@@ -9,8 +9,9 @@ description: Adopt, upgrade or extend @driftkingtw/nuxt-harness in a Nuxt app (s
 of the owner's Nuxt apps use. This plugin adds hooks (lint on edit; PRs open as drafts; no `gh pr ready`
 without a passing local e2e run on the PR head; workflow-mode reminders) and this guide. The plugin
 follows the repo's main branch, while an app pins a release tag: for the API, read the installed
-version's `node_modules/@driftkingtw/nuxt-harness/README.md`, not memory. Also ask, when a mistake
-or idea comes up in any app: should this become a shared guardrail? (See "Add a guardrail".)
+version's `node_modules/@driftkingtw/nuxt-harness/README.md`, not memory. The `ui` skill has the
+rules for designing screens and UI copy. Also ask, when a mistake or idea comes up in any app:
+should this become a shared guardrail? (See "Add a guardrail".)
 
 ## Adopt it in an app
 
@@ -41,7 +42,9 @@ or idea comes up in any app: should this become a shared guardrail? (See "Add a 
      `expectClean(rawRadiusValues())`, `expectClean(transitionNames())` and
      `expectClean(reducedMotionReset())` once `main.css` defines motion tokens, radius tokens and
      its `<Transition>` classes (existing literals go in `allowClasses` with a reason, or get fixed).
-     `expectClean(ciBudget())` for `.github/workflows`.
+     `expectClean(ciBudget())` for `.github/workflows`. `expectClean(longCopy({ allowKeys: [...] }))`
+     keeps UI strings short (the `ui` skill); strings already longer go in `allowKeys` until their
+     screen is reworked.
    - `.github/workflows/ci.yml`: follow the README's "CI budget" example: drafts skipped, no run on
      push to main, `nuxt-harness require-local-e2e` instead of `yarn e2e` unless asked for. Record
      the change in an ADR.

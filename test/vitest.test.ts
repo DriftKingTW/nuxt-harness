@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { agentsMap, ciBudget, commitScopes, localeKeyParity, missingLocaleKeys, rawMotionValues, rawPaletteColours, rawRadiusValues, reducedMotionReset, transitionNames } from '../src/vitest.js'
+import { agentsMap, ciBudget, commitScopes, localeKeyParity, longCopy, missingLocaleKeys, rawMotionValues, rawPaletteColours, rawRadiusValues, reducedMotionReset, transitionNames } from '../src/vitest.js'
 
 function project(files: Record<string, string>) {
   const root = mkdtempSync(join(tmpdir(), 'nuxt-harness-'))
@@ -39,6 +39,30 @@ describe('missingLocaleKeys', () => {
 
   it('refuses an empty key list rather than passing', () => {
     expect(() => missingLocaleKeys([])).toThrow('got no keys')
+  })
+})
+
+describe('longCopy', () => {
+  const file = join(project({
+    'zh-TW.json': JSON.stringify({
+      a: { short: '短說明', hint: '這是一段超過十個字的說明文字' },
+      b: { count: '共 {count} 件，{amount} 元', allowed: '允許的長說明文字超過十個字' },
+    }),
+  }), 'zh-TW.json')
+
+  it('lists long messages, counting a placeholder as one character', () => {
+    expect(longCopy({ file, maxChars: 10, allowKeys: ['b.allowed'] }).offenders).toEqual([`${file}: a.hint (14 characters)`])
+  })
+
+  it('lists allowed keys that are short or gone, so the list only shrinks', () => {
+    expect(longCopy({ file, maxChars: 10, allowKeys: ['a.hint', 'b.allowed', 'a.short', 'gone'] }).offenders).toEqual([
+      'allowKeys: a.short (not over 10 characters: remove it)',
+      'allowKeys: gone (not over 10 characters: remove it)',
+    ])
+  })
+
+  it('refuses a file without messages rather than passing', () => {
+    expect(() => longCopy({ file: join(project({ 'en.json': '{}' }), 'en.json') })).toThrow('No messages')
   })
 })
 

@@ -18,8 +18,8 @@ Yarn 4, pinned in `.yarn/releases`. TypeScript 5.9 (the apps pin it too).
 src/            one file per package entry (eslint, playwright, vitest, nuxt) + adrs.ts, local-e2e.ts, cli.ts
 test/           Vitest tests for src/
 plugin/         the Claude Code plugin: hooks/ (lint on edit, draft PRs, e2e gate, workflow modes,
-                worktree guard) and
-                skills/harness/ (SKILL.md, AGENTS.template.md)
+                worktree guard),
+                skills/harness/ (SKILL.md, AGENTS.template.md) and skills/ui/ (designing screens and copy)
 .claude-plugin/ the marketplace that lists plugin/
 ```
 
