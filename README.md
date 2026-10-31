@@ -12,12 +12,12 @@ A personal toolkit, shared in case it is useful. No support is offered.
 |---|---|
 | `@driftkingtw/nuxt-harness/eslint` | `harness({ bareStrings })`: flat config items. `vue/no-bare-strings-in-template` in `app/**/*.vue` with a shared allowlist; `nuxt-harness/no-browser-dialogs` in `app/**/*.{ts,vue}` (no `alert`/`confirm`/`prompt`); and two rules for `e2e/**/*.spec.ts`: `nuxt-harness/goto-hydrated` (no `page.goto` or `page.reload`) and `nuxt-harness/test-from-fixtures` (no `test`/`expect` from `@playwright/test`) |
 | `@driftkingtw/nuxt-harness/playwright` | `test` (fails on console errors, warnings and page errors; option `consoleIgnore`: one RegExp or a list, but one RegExp in `test.use`, where Playwright reads a two-item array as `[value, options]`), `expect`, `gotoHydrated(page, path)`, `e2ePort()` |
-| `@driftkingtw/nuxt-harness/vitest` | `localeKeyParity()`, `missingLocaleKeys(keys)`, `rawPaletteColours({ files, allowFiles, allowClasses })`, UI motion and shape: `rawMotionValues({ files, allowClasses })` (durations, delays and curves from tokens), `rawRadiusValues({ files, allowClasses })` (corners from radius tokens; `calc(var(--radius-…)…)` passes), `transitionNames({ files, css })` (every `<Transition name>` has its classes in `main.css`), `reducedMotionReset({ css })`; `agentsMap({ maxLines })` (AGENTS.md stays a short map with a commit scope table), `ciBudget({ dir })` (workflows spend Actions minutes only on new information; see [CI budget](#ci-budget)), and `expectClean(findings)` |
+| `@driftkingtw/nuxt-harness/vitest` | `localeKeyParity()`, `missingLocaleKeys(keys)`, `longCopy({ file, maxChars, allowKeys })` (no message in the default locale longer than a short hint, 40 characters; see the `ui` skill), `rawPaletteColours({ files, allowFiles, allowClasses })`, UI motion and shape: `rawMotionValues({ files, allowClasses })` (durations, delays and curves from tokens), `rawRadiusValues({ files, allowClasses })` (corners from radius tokens; `calc(var(--radius-…)…)` passes), `transitionNames({ files, css })` (every `<Transition name>` has its classes in `main.css`), `reducedMotionReset({ css })`; `agentsMap({ maxLines })` (AGENTS.md stays a short map with a commit scope table), `ciBudget({ dir })` (workflows spend Actions minutes only on new information; see [CI budget](#ci-budget)), and `expectClean(findings)` |
 | `@driftkingtw/nuxt-harness/nuxt` | Nuxt module: sets `<html data-hydrated="true">` once Nuxt has hydrated, which `gotoHydrated` waits for |
 | `nuxt-harness check-adrs` | Validates `docs/decisions` (MADR-lite ADRs indexed in `README.md`) and that every dependency in `package.json` is named in one |
 | `nuxt-harness e2e` | Runs the app's `e2e` script for the pushed, clean HEAD (one run at a time per repository, since worktrees share a local database) and sets the commit status `e2e (local)` to the result. Takes no arguments: a filtered run must not mark a commit as passed |
 | `nuxt-harness require-local-e2e --sha <commit>` | For CI: fails unless the commit has a passing `e2e (local)` status, and says how to get one |
-| Claude Code plugin `nuxt-harness` | Hooks: ESLint `--fix` on each edited file; `gh pr create` only as a draft; no `gh pr ready` until the PR head has a passing `e2e (local)` status (docs-only PRs excepted; apps on a package without `nuxt-harness e2e` get the older check against the last local `yarn e2e`); no commit statuses written by hand; edits to tracked files in the main checkout in worktree mode; workflow modes (below). The `harness` skill: adopt, upgrade, add a guardrail, with an `AGENTS.md` template |
+| Claude Code plugin `nuxt-harness` | Hooks: ESLint `--fix` on each edited file; `gh pr create` only as a draft; no `gh pr ready` until the PR head has a passing `e2e (local)` status (docs-only PRs excepted; apps on a package without `nuxt-harness e2e` get the older check against the last local `yarn e2e`); no commit statuses written by hand; edits to tracked files in the main checkout in worktree mode; workflow modes (below). The `harness` skill: adopt, upgrade, add a guardrail, with an `AGENTS.md` template. The `ui` skill: screens explain themselves with layout, components and icons; text is the last resort |
 
 ## Install
 
@@ -31,7 +31,7 @@ approvedGitRepositories:
 ```
 
 ```sh
-yarn add -D @driftkingtw/nuxt-harness@github:DriftKingTW/nuxt-harness#v0.4.0
+yarn add -D @driftkingtw/nuxt-harness@github:DriftKingTW/nuxt-harness#v0.6.0
 ```
 
 ```ts
@@ -68,9 +68,10 @@ export default defineConfig<HarnessTestOptions>({
 
 ```ts
 // test/structure.test.ts
-import { agentsMap, ciBudget, expectClean, localeKeyParity, rawMotionValues, rawPaletteColours, rawRadiusValues, reducedMotionReset, transitionNames } from '@driftkingtw/nuxt-harness/vitest'
+import { agentsMap, ciBudget, expectClean, localeKeyParity, longCopy, rawMotionValues, rawPaletteColours, rawRadiusValues, reducedMotionReset, transitionNames } from '@driftkingtw/nuxt-harness/vitest'
 
 it('locale files have the same keys', () => expectClean(localeKeyParity()))
+it('screens explain themselves rather than with text', () => expectClean(longCopy({ allowKeys: [] })))
 it('app/ uses colour roles', () => expectClean(rawPaletteColours({ allowFiles: ['app/utils/chips.ts'] })))
 it('motion comes from tokens', () => expectClean(rawMotionValues()))
 it('corners come from radius tokens', () => expectClean(rawRadiusValues()))

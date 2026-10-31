@@ -22,13 +22,13 @@ type Messages = { [key: string]: unknown }
 function loadLocales(dir: string) {
   const files = readdirSync(dir).filter(f => f.endsWith('.json')).sort()
   if (files.length === 0) throw new Error(`No locale files (*.json) in ${dir}.`)
-  return files.map(file => [file, new Set(keysOf(JSON.parse(readFileSync(join(dir, file), 'utf8'))))] as const)
+  return files.map(file => [file, new Set(messagesOf(JSON.parse(readFileSync(join(dir, file), 'utf8'))).map(([key]) => key))] as const)
 }
 
-function keysOf(messages: Messages, prefix = ''): string[] {
+function messagesOf(messages: Messages, prefix = ''): [key: string, value: unknown][] {
   return Object.entries(messages).flatMap(([key, value]) => value && typeof value === 'object'
-    ? keysOf(value as Messages, `${prefix}${key}.`)
-    : [`${prefix}${key}`])
+    ? messagesOf(value as Messages, `${prefix}${key}.`)
+    : [[`${prefix}${key}`, value] as [string, unknown]])
 }
 
 /** Every locale file in `dir` has the same message keys. */
@@ -47,6 +47,35 @@ export function missingLocaleKeys(keys: string[], { dir = 'i18n/locales' } = {})
   return {
     offenders: loadLocales(dir).flatMap(([file, present]) => keys.filter(key => !present.has(key)).map(key => `${file}: ${key}`)),
     fix: `Add these keys to the locale files in ${dir}. Without them the UI shows the raw key, or the server's English text.`,
+  }
+}
+
+export interface LongCopyOptions {
+  /** The locale file to measure: the app's default language. */
+  file?: string
+  /** Most characters a message may have; a {placeholder} counts as one. */
+  maxChars?: number
+  /** Keys that may be longer, each with a reason in the app's test. */
+  allowKeys?: string[]
+}
+
+/**
+ * Screens explain themselves with layout, components and icons rather than text, so no message
+ * is longer than a short hint. Allowed keys that are short again, or gone, are reported too, so
+ * the allow list only shrinks.
+ */
+export function longCopy({ file = 'i18n/locales/zh-TW.json', maxChars = 40, allowKeys = [] }: LongCopyOptions = {}): Findings {
+  const messages = messagesOf(JSON.parse(readFileSync(file, 'utf8'))).filter(([, value]) => typeof value === 'string')
+  if (messages.length === 0) throw new Error(`No messages in ${file}.`)
+  const long = new Map(messages
+    .map(([key, value]) => [key, [...(value as string).replace(/\{[^}]*\}/g, '#')].length] as const)
+    .filter(([, chars]) => chars > maxChars))
+  return {
+    offenders: [
+      ...[...long].filter(([key]) => !allowKeys.includes(key)).map(([key, chars]) => `${file}: ${key} (${chars} characters)`),
+      ...allowKeys.filter(key => !long.has(key)).map(key => `allowKeys: ${key} (not over ${maxChars} characters: remove it)`),
+    ],
+    fix: `Explain with the screen rather than text: let layout, grouping, components (chips, badges, empty states, a disclosure for details) and icons carry the meaning, and cut what the layout already says. A hint that is truly needed stays within ${maxChars} characters; the nuxt-harness:ui skill has the rules.`,
   }
 }
 
