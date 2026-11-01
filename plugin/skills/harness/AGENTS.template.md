@@ -49,6 +49,7 @@ Format: `type(scope): subject`. Allowed scopes; omit the scope when a change spa
 ## Language
 
 - Code, comments, commit messages, PR titles/descriptions and docs are in **English**.
+- UI copy uses standard app terms, not conversation (the `ui` skill). <Replace this line if the app speaks in a conversational voice, and say where.>
 - User-facing copy lives only in `i18n/locales/`, used via `t()` / `$t()`; add keys to **every** locale file. Enforced by `vue/no-bare-strings-in-template` and the locale key check; language-neutral symbols go in `harness({ bareStrings })` in `eslint.config.mjs`.
 
 ## Rules that are not (yet) enforced by tooling
