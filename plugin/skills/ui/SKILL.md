@@ -28,8 +28,16 @@ per section, one line, 40 characters at most in the default language. `longCopy(
 
 ## Wording
 
+- Write in the terms apps use, the way a settings screen or a permission dialog says it, not the
+  way people talk: in zh-TW 唯讀 rather than 不能修改, 啟用 rather than 打開…的開關, 僅限區域網路
+  rather than 只有區域網路連得到, 僅顯示一次 rather than 只會顯示這一次，請現在複製; in English
+  "Read-only", "Enable", "Shown only once". A conversational voice is the exception: words the
+  user would say themselves (an example question to an AI), or an app whose `AGENTS.md` says it
+  speaks that way.
 - Reuse the app's terms and shared strings (search the locale files for how the app already says
   it).
+- Cut a heading that repeats the button under it, a lead-in ending in a colon that the layout
+  already says, and lists of what is not supported (list what is).
 - Leave out what users already know and how the app works inside.
 - Errors: one line that says what to do.
 - Empty states: an icon, one line, and the action that fills the space.
