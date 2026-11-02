@@ -26,6 +26,27 @@ What is left as text is only what the user needs in order to act and cannot see:
 per section, one line, 40 characters at most in the default language. `longCopy()` from
 `@driftkingtw/nuxt-harness/vitest` enforces the length.
 
+## Does it need to be there at all?
+
+Ask this before shortening a hint: would a user without it make a mistake or be unable to act? If
+not, delete it. A short hint that need not exist is still noise. Usually not needed:
+
+- How standard gestures work: drag, scroll or pinch to move or zoom, click a marker or a box, drag
+  to reorder.
+- What a chart's labels, legend or tooltip already show.
+- How a tool works when its preview or result shows it (a list of changes, a live preview, a count
+  of skipped items).
+- What a button's own label says, e.g. "empty clears it" next to a button that says "Clear 3 items".
+- How a number is calculated, and which filters it ignores.
+
+Usually needed, in one short line:
+
+- A side effect on data the user is not looking at (other items of the same model change too).
+- Who can see what (privacy).
+- What cannot be undone or changed later.
+- What a filter or scope with an ambiguous name includes.
+- A data source its licence requires to be named, and a note an ADR asks for.
+
 ## Wording
 
 - Write in the terms apps use, the way a settings screen or a permission dialog says it, not the
@@ -50,5 +71,5 @@ illustration only to avoid a word: a plain label is fine.
 ## Older long strings
 
 An app lists the strings it had before this rule in `longCopy({ allowKeys })`. When changing a
-screen, rework its listed strings the same way and remove them from the list; `longCopy()` reports
-entries that are no longer long.
+screen, rework its listed strings the same way (first ask whether each needs to exist, then shorten
+what stays) and remove them from the list; `longCopy()` reports entries that are no longer long.
