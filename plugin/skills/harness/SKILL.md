@@ -44,7 +44,7 @@ should this become a shared guardrail? (See "Add a guardrail".)
      its `<Transition>` classes (existing literals go in `allowClasses` with a reason, or get fixed).
      `expectClean(ciBudget())` for `.github/workflows`. `expectClean(longCopy({ allowKeys: [...] }))`
      keeps UI strings short (the `ui` skill); strings already longer go in `allowKeys` until their
-     screen is reworked.
+     screen is reworked (cut what need not exist, then shorten the rest).
    - `.github/workflows/ci.yml`: follow the README's "CI budget" example: drafts skipped, no run on
      push to main, `nuxt-harness require-local-e2e` instead of `yarn e2e` unless asked for. Record
      the change in an ADR.
