@@ -13,7 +13,8 @@ hints, so explanatory text is the exception, not the default.
 Try these first, in order:
 
 1. **Layout**: group related things, order them by use, and let a heading name the group. Don't
-   say in words what the layout already shows.
+   say in words what the layout already shows, least of all in a line under the heading (see
+   "Secondary text").
 2. **Components and states**: a chip or badge for a status or count, an empty state, a disabled
    control, a progress bar, a preview of the result, a confirmation on the destructive action.
 3. **Icons**: the app's own `AppIcon` (no icon library); draw a new one there when none fits. A
@@ -47,6 +48,19 @@ Usually needed, in one short line:
 - What a filter or scope with an ambiguous name includes.
 - A data source its licence requires to be named, and a note an ADR asks for.
 
+## Secondary text
+
+Secondary text is the smaller, muted line beside something that already has a name: a description
+under a page or section heading, a helper line under a field or a toggle, a caption under a chart
+or a card. Cut it first: the heading, the label and the layout around it usually say the same.
+
+- A heading names the group, and the controls under it, in the order they are used, show what to
+  do. Don't add a line that restates either.
+- When a heading and the button under it say the same, keep one. Drop a lead-in ending in a colon.
+- What a field takes (a format, a currency, a unit) goes in its label, a unit beside it or an
+  example in the placeholder, not in a helper line.
+- A line that stays passes "Does it need to be there at all?" and counts as the section's one hint.
+
 ## Wording
 
 - Write in the terms apps use, the way a settings screen or a permission dialog says it, not the
@@ -57,8 +71,7 @@ Usually needed, in one short line:
   speaks that way.
 - Reuse the app's terms and shared strings (search the locale files for how the app already says
   it).
-- Cut a heading that repeats the button under it, a lead-in ending in a colon that the layout
-  already says, and lists of what is not supported (list what is).
+- List what is supported, not what is not.
 - Leave out what users already know and how the app works inside.
 - Errors: one line that says what to do.
 - Empty states: an icon, one line, and the action that fills the space.
