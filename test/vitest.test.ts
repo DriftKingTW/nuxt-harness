@@ -142,6 +142,30 @@ describe('rawRadiusValues', () => {
   it('allows listed classes', () => {
     expect(rawRadiusValues({ files: `${root}/app/Chip.vue`, allowClasses: ['rounded-[0.5rem]', 'rounded-t-[6px]'] }).offenders).toEqual([])
   })
+
+  describe('Tailwind\'s own scale', () => {
+    const scaled = project({
+      'app/Card.vue': [
+        '<!-- rounded corners, like the card -->',
+        '<div class="rounded sm:rounded-t-xl rounded-card rounded-full rounded-none rounded-[calc(var(--radius-card)-2px)]">',
+        '  <img :class="{ \'rounded-md\': small }">',
+        '  <span :class="wide ? `rounded-lg p-2` : \'rounded-control\'" />',
+        '</div>',
+        '<script setup lang="ts">',
+        'const rounded = (n: number) => Math.round(n)',
+        '</script>',
+      ].join('\n'),
+    })
+
+    it('finds it in class attributes and :class strings, not in comments or code', () => {
+      const { offenders } = rawRadiusValues({ files: `${scaled}/app/**/*.vue` })
+      expect(offenders.map(o => o.slice(scaled.length + 1))).toEqual(['app/Card.vue: rounded', 'app/Card.vue: rounded-t-xl', 'app/Card.vue: rounded-md', 'app/Card.vue: rounded-lg'])
+    })
+
+    it('allows listed classes', () => {
+      expect(rawRadiusValues({ files: `${scaled}/app/**/*.vue`, allowClasses: ['rounded', 'rounded-t-xl', 'rounded-md', 'rounded-lg'] }).offenders).toEqual([])
+    })
+  })
 })
 
 describe('transitionNames', () => {

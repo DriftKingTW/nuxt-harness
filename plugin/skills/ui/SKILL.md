@@ -35,7 +35,8 @@ illustration only to avoid a word: a plain label is fine.
   the column `min-w-*` and `whitespace-nowrap` rather than `w-*`.
 - Before showing a change (the preview or the PR), look at the screen at phone width (360px) and
   in every place it opens, with its longest real value (`2026年11月15日`, a long name, a large
-  amount).
+  amount). An e2e spec at phone width keeps it so: `layoutOverflow(page)` finds a page that
+  scrolls sideways and controls sticking out of their card; it can't see text that wraps badly.
 
 ## 3. Text
 
