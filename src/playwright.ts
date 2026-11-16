@@ -1,5 +1,8 @@
 // Playwright helpers. Apps re-export them from e2e/fixtures.ts, next to their own helpers, and
 // specs import from there (lint rules goto-hydrated and test-from-fixtures).
+// The callbacks of page.evaluate run in the browser, hence the DOM types.
+/// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
 import { test as base, expect, type Page } from '@playwright/test'
 
 export { expect }
@@ -45,6 +48,48 @@ export const test = base.extend<HarnessTestOptions & { consoleProblems: string[]
 export async function gotoHydrated(page: Page, path: string) {
   await page.goto(path)
   await page.locator('html[data-hydrated="true"]').waitFor()
+}
+
+export interface LayoutOverflowOptions {
+  /** Boxes their contents must stay inside; each element is held to the closest one around it. */
+  containers?: string
+  /** The elements to check. */
+  elements?: string
+}
+
+/**
+ * What breaks the layout at the page's current width: a page that scrolls sideways, and elements
+ * sticking out of the closest card or form around them (only the outermost of nested offenders).
+ * Content in a box that scrolls or clips it, and anything fixed to the screen, doesn't count.
+ * Check each page at phone width: `await expect.poll(() => layoutOverflow(page)).toEqual([])`.
+ */
+export async function layoutOverflow(page: Page, {
+  containers = 'section, article, aside, figure, header, form, dialog',
+  elements = 'input, select, textarea, button, a, label, img, canvas, video, table',
+}: LayoutOverflowOptions = {}) {
+  return await page.evaluate(({ containers, elements }) => {
+    const problems: string[] = []
+    const root = document.documentElement
+    if (root.scrollWidth > window.innerWidth + 1) problems.push(`page scrolls sideways (${root.scrollWidth}px wide at ${window.innerWidth}px)`)
+    const reported: Element[] = []
+    for (const el of document.querySelectorAll(elements)) {
+      const box = el.parentElement?.closest(containers)
+      if (!box || reported.some(r => r.contains(el)) || !el.checkVisibility({ visibilityProperty: true })) continue
+      const r = el.getBoundingClientRect()
+      if (r.width === 0 || r.height === 0) continue
+      let free = true
+      for (let a: Element | null = el; a && a !== box; a = a.parentElement) {
+        const style = getComputedStyle(a)
+        if (style.position === 'fixed' || (a !== el && style.overflowX !== 'visible')) free = false
+      }
+      const b = box.getBoundingClientRect()
+      if (!free || (r.left >= b.left - 1 && r.right <= b.right + 1)) continue
+      reported.push(el)
+      const name = el.getAttribute('aria-label') || el.textContent?.trim().slice(0, 20) || ''
+      problems.push(`<${el.tagName.toLowerCase()}> "${name}" sticks out of its <${box.tagName.toLowerCase()}> (${Math.round(r.left)}–${Math.round(r.right)}px, the box ${Math.round(b.left)}–${Math.round(b.right)}px)`)
+    }
+    return problems
+  }, { containers, elements })
 }
 
 /**
