@@ -5,10 +5,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { layoutOverflow } from '../src/playwright.js'
 
 let browser: Browser | undefined
+// Starting a browser can take longer than vitest's 10 s hook limit on a CI runner, after the first
+// try finds no Playwright Chromium there (it timed out once at 10 s).
+const LAUNCH_TIMEOUT = 60_000
 beforeAll(async () => {
   browser = await chromium.launch().catch(() => chromium.launch({ channel: 'chrome' })).catch(() => undefined)
-})
-afterAll(() => browser?.close())
+}, LAUNCH_TIMEOUT)
+afterAll(() => browser?.close(), LAUNCH_TIMEOUT)
 
 async function at(width: number, body: string, run: (page: Page) => Promise<void>) {
   const page = await browser!.newPage({ viewport: { width, height: 600 } })
