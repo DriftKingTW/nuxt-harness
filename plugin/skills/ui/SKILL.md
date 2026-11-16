@@ -37,6 +37,9 @@ illustration only to avoid a word: a plain label is fine.
   14px of padding), a pill's sides at least half its height, and a card nested in another is less
   round than its parent. When a radius goes up, the padding goes up with it, or the text crowds
   the curve. A single-line control (a field, a button) is the exception: its height carries it.
+- One left edge per card: its heading, its content and their marks (a timeline's dots, bullets,
+  flags) start on the same line, never left of the heading. Where cards sit inside another surface
+  (a side pane), the surface's own title lines up with their content, not with their edges.
 - Before showing a change (the preview or the PR), look at the screen at phone width (360px) and
   in every place it opens, with its longest real value (`2026年11月15日`, a long name, a large
   amount). An e2e spec at phone width keeps it so: `layoutOverflow(page)` finds a page that
