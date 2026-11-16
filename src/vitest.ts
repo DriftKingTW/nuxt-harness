@@ -149,14 +149,35 @@ export function rawMotionValues({ files = 'app/**/*.vue', allowClasses = [] }: U
 // rounded-[calc(var(--radius-control)-2px)] keeps a nested corner concentric with its parent.
 const RAW_RADIUS = /(?<![\w-])(?:[a-z0-9-]+:)*(rounded(?:-(?:t|r|b|l|s|e|tl|tr|br|bl|ss|se|es|ee))?-\[(?!calc\(var\(--radius-)[^\]\s]+\])/g
 
+// Tailwind's own radius scale: rounded, rounded-lg, sm:rounded-t-xl. Looked for only in class
+// attributes (and the quoted strings of a :class binding): "rounded" is a common word in comments.
+const SCALE_RADIUS = /^(?:[a-z0-9-]+:)*(rounded(?:-(?:t|r|b|l|s|e|tl|tr|br|bl|ss|se|es|ee))?(?:-(?:xs|sm|md|lg|xl|2xl|3xl|4xl))?)$/
+const CLASS_ATTRIBUTE = /(?<![\w-])(:|v-bind:)?class="([^"]*)"/g
+const QUOTED = /'([^']*)'|`([^`]*)`/g
+
+function scanClassAttributes(files: string, pattern: RegExp, allowClasses: string[]) {
+  const offenders = new Set<string>()
+  for (const file of globSync(files)) {
+    for (const [, bound, value] of readFileSync(file, 'utf8').matchAll(CLASS_ATTRIBUTE)) {
+      const lists = bound ? [...value!.matchAll(QUOTED)].map(m => m[1] ?? m[2]!) : [value!]
+      for (const token of lists.join(' ').split(/\s+/)) {
+        const cls = pattern.exec(token)?.[1]
+        if (cls && !allowClasses.includes(cls)) offenders.add(`${file}: ${cls}`)
+      }
+    }
+  }
+  return [...offenders]
+}
+
 /**
  * Corners come from the radius tokens (rounded-card, rounded-control, …), so surfaces share a
- * small set of shapes and a restyle changes the tokens.
+ * small set of shapes and a restyle changes the tokens: no literal radius, and no size from
+ * Tailwind's own scale (rounded, rounded-lg), which sits beside the tokens without being one.
  */
 export function rawRadiusValues({ files = 'app/**/*.vue', allowClasses = [] }: UiFilesOptions = {}): Findings {
   return {
-    offenders: scanClasses(files, RAW_RADIUS, allowClasses),
-    fix: 'Use a radius token from app/assets/css/main.css (rounded-card, rounded-control, rounded-full, …) instead of a literal radius; for a corner nested in a token-rounded parent use rounded-[calc(var(--radius-…)-Npx)].',
+    offenders: [...scanClasses(files, RAW_RADIUS, allowClasses), ...scanClassAttributes(files, SCALE_RADIUS, allowClasses)],
+    fix: 'Use a radius token from app/assets/css/main.css (rounded-card, rounded-control, rounded-full, …) instead of a literal radius or Tailwind\'s own scale (rounded, rounded-lg, …); add a token there for a shape that has none (e.g. --radius-bar), and for a corner nested in a token-rounded parent use rounded-[calc(var(--radius-…)-Npx)].',
   }
 }
 
