@@ -89,7 +89,7 @@ illustration only to avoid a word: a plain label is fine.
 - Text in a column of fixed width (a date, an amount, a short label) can outgrow it in another
   language, a larger font or a two-digit day, and CJK text breaks between any two characters. Give
   the column `min-w-*` and `whitespace-nowrap` rather than `w-*`.
-- Before the preview, look at the changed screen at phone width (360px) and in every place it
+- Before showing a change (the preview or the PR), look at the screen at phone width (360px) and in every place it
   opens, with its longest real value (`2026年11月15日`, a long name, a large amount).
 
 ## Older long strings
