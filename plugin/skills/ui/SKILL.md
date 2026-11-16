@@ -33,6 +33,10 @@ illustration only to avoid a word: a plain label is fine.
 - Text in a column of fixed width (a date, an amount, a short label) can outgrow it in another
   language, a larger font or a two-digit day, and CJK text breaks between any two characters. Give
   the column `min-w-*` and `whitespace-nowrap` rather than `w-*`.
+- Padding grows with the corner. A box of text keeps at least its radius inside (a 14px corner,
+  14px of padding), a pill's sides at least half its height, and a card nested in another is less
+  round than its parent. When a radius goes up, the padding goes up with it, or the text crowds
+  the curve. A single-line control (a field, a button) is the exception: its height carries it.
 - Before showing a change (the preview or the PR), look at the screen at phone width (360px) and
   in every place it opens, with its longest real value (`2026年11月15日`, a long name, a large
   amount). An e2e spec at phone width keeps it so: `layoutOverflow(page)` finds a page that
