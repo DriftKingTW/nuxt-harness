@@ -81,6 +81,17 @@ or a card. Cut it first: the heading, the label and the layout around it usually
 Use the simplest component that carries the meaning. Don't add a component, animation or
 illustration only to avoid a word: a plain label is fine.
 
+## Layouts that fit
+
+- A component that opens in more than one place (a page, a side pane, a half-width card) sets its
+  columns by its own width: `@container` on it and `@lg:` / `@2xl:` on its grids, not the
+  viewport's `sm:` / `lg:`, which give a half-width card the full-width layout.
+- Text in a column of fixed width (a date, an amount, a short label) can outgrow it in another
+  language, a larger font or a two-digit day, and CJK text breaks between any two characters. Give
+  the column `min-w-*` and `whitespace-nowrap` rather than `w-*`.
+- Before the preview, look at the changed screen at phone width (360px) and in every place it
+  opens, with its longest real value (`2026年11月15日`, a long name, a large amount).
+
 ## Older long strings
 
 An app lists the strings it had before this rule in `longCopy({ allowKeys })`. When changing a
